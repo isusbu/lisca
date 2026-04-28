@@ -219,22 +219,33 @@ std::vector<std::string> collectTranslationUnits(const CompilationDatabase &data
   return sourceFiles;
 }
 
+fs::path resolveInputRoot(const fs::path &compileCommandsDir, const fs::path &inputPath) {
+  if (inputPath.is_absolute()) {
+    return inputPath;
+  }
+
+  return compileCommandsDir / inputPath;
+}
+
 } // namespace
 
 std::vector<FunctionInfo> FunctionFinder::run(const fs::path &compileCommandsDir,
                                               const fs::path &inputPath,
                                               const std::string &functionName) const {
   std::string errorMessage;
+  const fs::path normalizedCompileCommandsDir = normalizePath(compileCommandsDir);
   std::unique_ptr<CompilationDatabase> database =
-      CompilationDatabase::loadFromDirectory(compileCommandsDir.string(), errorMessage);
+      CompilationDatabase::loadFromDirectory(normalizedCompileCommandsDir.string(), errorMessage);
   if (!database) {
     llvm::errs() << "Failed to load compilation database: " << errorMessage << '\n';
     return {};
   }
 
-  std::vector<std::string> sourceFiles = collectTranslationUnits(*database, inputPath);
+  const fs::path resolvedInputPath = resolveInputRoot(normalizedCompileCommandsDir, inputPath);
+
+  std::vector<std::string> sourceFiles = collectTranslationUnits(*database, resolvedInputPath);
   if (sourceFiles.empty()) {
-    llvm::errs() << "No analyzable translation units found under " << inputPath << '\n';
+    llvm::errs() << "No analyzable translation units found under " << resolvedInputPath << '\n';
     return {};
   }
 

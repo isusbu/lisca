@@ -176,6 +176,7 @@ bear -- make -j"$(nproc)"
 ```
 
 The important part is that `compile_commands.json` ends up in the directory you pass to `--compile-commands-dir`.
+If `--input` is a relative path such as `fs/ext4`, LisCa resolves it against `--compile-commands-dir`.
 
 ### 4. Build LisCa
 
