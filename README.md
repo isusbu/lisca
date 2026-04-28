@@ -21,10 +21,12 @@ On Ubuntu or Debian, install the build requirements first:
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake ninja-build clang llvm-dev libclang-dev bear
+sudo apt install build-essential cmake ninja-build clang llvm-dev libclang-dev libzstd-dev bear
 ```
 
 If your distro splits LLVM by version, you may also have packages such as `llvm-18-dev` and `libclang-18-dev`. Install the matching version for both LLVM and Clang.
+
+If CMake still complains about `zstd::libzstd_shared`, install `libzstd-dev` on Linux and re-run the configure step.
 
 Find the LLVM and Clang CMake package directories:
 
