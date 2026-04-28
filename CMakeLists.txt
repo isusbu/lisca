@@ -28,7 +28,7 @@ add_executable(lisca
 
 target_include_directories(lisca PRIVATE include)
 
-llvm_map_components_to_libnames(llvm_libs Support Option FrontendOpenMP)
+llvm_map_components_to_libnames(llvm_libs Support Option)
 
 target_link_libraries(lisca PRIVATE
   clangAST
