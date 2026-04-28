@@ -28,10 +28,12 @@ add_executable(lisca
 
 target_include_directories(lisca PRIVATE include)
 
+llvm_map_components_to_libnames(llvm_libs Support Option)
+
 if(TARGET clang-cpp)
-  target_link_libraries(lisca PRIVATE clang-cpp)
+  target_link_libraries(lisca PRIVATE clang-cpp ${llvm_libs})
 else()
-  target_link_libraries(lisca PRIVATE clangTooling)
+  target_link_libraries(lisca PRIVATE clangTooling ${llvm_libs})
 endif()
 
 add_executable(lisca_toy examples/toy_sample.cpp)
