@@ -4,6 +4,7 @@
 #include <clang/AST/ASTConsumer.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
 #include <clang/Lex/Lexer.h>
@@ -240,6 +241,9 @@ std::vector<FunctionInfo> FunctionFinder::run(const fs::path &compileCommandsDir
   std::vector<FunctionInfo> results;
   FunctionActionFactory factory(functionName, results);
   ClangTool tool(*database, sourceFiles);
+
+  tool.appendArgumentsAdjuster(
+      getInsertArgumentAdjuster("--gcc-toolchain=/usr", ArgumentInsertPosition::BEGIN));
 
   if (const int code = tool.run(&factory); code != 0) {
     llvm::errs() << "ClangTool exited with code " << code << '\n';
