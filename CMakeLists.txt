@@ -28,18 +28,10 @@ add_executable(lisca
 
 target_include_directories(lisca PRIVATE include)
 
-llvm_map_components_to_libnames(llvm_libs Support)
-
-target_link_libraries(lisca PRIVATE
-  clangAST
-  clangBasic
-  clangFrontend
-  clangLex
-  clangTooling
-  clangToolingCore
-  clangParse
-  clangSema
-  ${llvm_libs}
-)
+if(TARGET clang-cpp)
+  target_link_libraries(lisca PRIVATE clang-cpp)
+else()
+  target_link_libraries(lisca PRIVATE clangTooling)
+endif()
 
 add_executable(lisca_toy examples/toy_sample.cpp)
