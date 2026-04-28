@@ -4,7 +4,7 @@
 #include <clang/AST/ASTConsumer.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Basic/SourceManager.h>
-#include <clang/Frontend/DiagnosticConsumer.h>
+#include <clang/Frontend/Utils.h>
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
@@ -189,11 +189,6 @@ private:
   std::vector<FunctionInfo> &results_;
 };
 
-class QuietDiagnosticConsumer : public DiagnosticConsumer {
-public:
-  void HandleDiagnostic(DiagnosticsEngine::Level, const Diagnostic &) override {}
-};
-
 std::vector<std::string> collectTranslationUnits(const CompilationDatabase &database,
                                                  const fs::path &inputPath) {
   std::vector<std::string> sourceFiles;
@@ -256,7 +251,7 @@ std::vector<FunctionInfo> FunctionFinder::run(const fs::path &compileCommandsDir
   std::vector<FunctionInfo> results;
   FunctionActionFactory factory(functionName, results);
   ClangTool tool(*database, sourceFiles);
-  auto diagnosticConsumer = std::make_unique<QuietDiagnosticConsumer>();
+  auto diagnosticConsumer = std::make_unique<IgnoringDiagConsumer>();
   tool.setDiagnosticConsumer(diagnosticConsumer.release());
 
   tool.appendArgumentsAdjuster(
