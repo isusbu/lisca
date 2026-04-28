@@ -28,11 +28,10 @@ add_executable(lisca
 
 target_include_directories(lisca PRIVATE include)
 
-llvm_map_components_to_libnames(llvm_libs Support Option FrontendOpenMP)
-
 if(TARGET clang-cpp)
-  target_link_libraries(lisca PRIVATE clang-cpp ${llvm_libs})
+  target_link_libraries(lisca PRIVATE clang-cpp)
 else()
+  llvm_map_components_to_libnames(llvm_libs Support Option FrontendOpenMP)
   target_link_libraries(lisca PRIVATE clangTooling ${llvm_libs})
 endif()
 
