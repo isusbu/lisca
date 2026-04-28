@@ -219,6 +219,19 @@ $ ./build/lisca --compile-commands-dir linux-master/ --input fs/ext4/ --function
 #   Signature: static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 ```
 
+Or, if you do know the exact file of a function,
+
+```bash
+$ ./build/lisca --compile-commands-dir linux-master/ --input fs/ext4/balloc.c --function ext4_has_free_clusters
+# Processing /home/ubuntu/lisca/linux-master/fs/ext4/balloc.c
+# Found 1 match(es) for 'ext4_has_free_clusters':
+# fs/ext4/balloc.c:620-666
+#   File: fs/ext4/balloc.c
+#   LOC: 47 lines
+#   Function: ext4_has_free_clusters
+#   Signature: static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
+```
+
 ### 6. Pick functions to test
 
 Good first targets are small, well-known functions such as `ext4_file_read_iter`, `ext4_file_write_iter`, `vfs_read`, or `schedule`. If you get no matches, check that the function is actually compiled in the build database you captured.
