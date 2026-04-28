@@ -109,8 +109,11 @@ int main(int argc, char **argv) {
 
   for (const lisca::FunctionInfo &info : results) {
     llvm::outs() << info.filePath << ':' << info.startLine << '-' << info.endLine << '\n';
+    llvm::outs() << "  File: " << info.filePath << '\n';
+    llvm::outs() << "  LOC: " << (info.endLine - info.startLine + 1) << " lines\n";
     llvm::outs() << "  Function: " << info.functionName << '\n';
     llvm::outs() << "  Signature: " << info.signature << '\n';
+    llvm::outs() << '\n';
   }
 
   return 0;
