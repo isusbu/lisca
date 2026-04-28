@@ -4,6 +4,7 @@
 #include <clang/AST/ASTConsumer.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Frontend/DiagnosticConsumer.h>
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
@@ -188,6 +189,11 @@ private:
   std::vector<FunctionInfo> &results_;
 };
 
+class QuietDiagnosticConsumer : public DiagnosticConsumer {
+public:
+  void HandleDiagnostic(DiagnosticsEngine::Level, const Diagnostic &) override {}
+};
+
 std::vector<std::string> collectTranslationUnits(const CompilationDatabase &database,
                                                  const fs::path &inputPath) {
   std::vector<std::string> sourceFiles;
@@ -237,7 +243,6 @@ std::vector<FunctionInfo> FunctionFinder::run(const fs::path &compileCommandsDir
   std::unique_ptr<CompilationDatabase> database =
       CompilationDatabase::loadFromDirectory(normalizedCompileCommandsDir.string(), errorMessage);
   if (!database) {
-    llvm::errs() << "Failed to load compilation database: " << errorMessage << '\n';
     return {};
   }
 
@@ -245,20 +250,23 @@ std::vector<FunctionInfo> FunctionFinder::run(const fs::path &compileCommandsDir
 
   std::vector<std::string> sourceFiles = collectTranslationUnits(*database, resolvedInputPath);
   if (sourceFiles.empty()) {
-    llvm::errs() << "No analyzable translation units found under " << resolvedInputPath << '\n';
     return {};
   }
 
   std::vector<FunctionInfo> results;
   FunctionActionFactory factory(functionName, results);
   ClangTool tool(*database, sourceFiles);
+  auto diagnosticConsumer = std::make_unique<QuietDiagnosticConsumer>();
+  tool.setDiagnosticConsumer(diagnosticConsumer.release());
 
   tool.appendArgumentsAdjuster(
       getInsertArgumentAdjuster("--gcc-toolchain=/usr", ArgumentInsertPosition::BEGIN));
 
-  if (const int code = tool.run(&factory); code != 0) {
-    llvm::errs() << "ClangTool exited with code " << code << '\n';
+  for (const std::string &sourceFile : sourceFiles) {
+    llvm::outs() << "Processing " << sourceFile << '\n';
   }
+
+  tool.run(&factory);
 
   std::sort(results.begin(), results.end(), [](const FunctionInfo &lhs, const FunctionInfo &rhs) {
     if (lhs.filePath != rhs.filePath) {
