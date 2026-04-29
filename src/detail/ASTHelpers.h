@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lisca/FunctionInfo.h"
-#include "detail/PathUtils.h"
+#include "PathUtils.h"
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
