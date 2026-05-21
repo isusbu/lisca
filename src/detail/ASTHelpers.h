@@ -76,7 +76,7 @@ public:
     using namespace clang::ast_matchers;
     if (prefixMatch) {
       finder_.addMatcher(
-          functionDecl(isDefinition(), matchesName("^" + functionName)).bind("function"),
+          functionDecl(isDefinition(), matchesName("(^|::)" + functionName)).bind("function"),
           &callback_);
     } else {
       finder_.addMatcher(
