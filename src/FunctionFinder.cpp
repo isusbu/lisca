@@ -16,7 +16,8 @@ namespace lisca {
 
 std::vector<FunctionInfo> FunctionFinder::run(const std::filesystem::path &compileCommandsDir,
                                               const std::filesystem::path &inputPath,
-                                              const std::string &functionName) const {
+                                              const std::string &functionName,
+                                              MatchMode mode) const {
   std::string error;
   const auto normalizedDir = detail::normalizePath(compileCommandsDir);
   auto database = clang::tooling::CompilationDatabase::loadFromDirectory(
@@ -31,8 +32,9 @@ std::vector<FunctionInfo> FunctionFinder::run(const std::filesystem::path &compi
     llvm::outs() << "Processing " << file << '\n';
   }
 
+  const bool prefixMatch = (mode == MatchMode::Prefix);
   std::vector<FunctionInfo> results;
-  detail::FunctionActionFactory factory(functionName, results);
+  detail::FunctionActionFactory factory(functionName, prefixMatch, results);
   clang::tooling::ClangTool tool(*database, sourceFiles);
 
   auto diagnosticConsumer = std::make_unique<clang::IgnoringDiagConsumer>();

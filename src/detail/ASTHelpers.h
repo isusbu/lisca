@@ -71,14 +71,18 @@ private:
 // Registers an AST matcher for a named function definition and drives matching.
 class FunctionConsumer : public clang::ASTConsumer {
 public:
-  FunctionConsumer(std::string functionName, std::vector<FunctionInfo> &results)
+  FunctionConsumer(std::string functionName, bool prefixMatch, std::vector<FunctionInfo> &results)
       : callback_(results) {
-    finder_.addMatcher(
-        clang::ast_matchers::functionDecl(
-            clang::ast_matchers::isDefinition(),
-            clang::ast_matchers::hasName(functionName))
-            .bind("function"),
-        &callback_);
+    using namespace clang::ast_matchers;
+    if (prefixMatch) {
+      finder_.addMatcher(
+          functionDecl(isDefinition(), matchesName("^" + functionName)).bind("function"),
+          &callback_);
+    } else {
+      finder_.addMatcher(
+          functionDecl(isDefinition(), hasName(functionName)).bind("function"),
+          &callback_);
+    }
   }
 
   void HandleTranslationUnit(clang::ASTContext &ctx) override {
@@ -93,31 +97,33 @@ private:
 // Frontend action that creates a FunctionConsumer for each translation unit.
 class FunctionAction : public clang::ASTFrontendAction {
 public:
-  FunctionAction(std::string functionName, std::vector<FunctionInfo> &results)
-      : functionName_(std::move(functionName)), results_(results) {}
+  FunctionAction(std::string functionName, bool prefixMatch, std::vector<FunctionInfo> &results)
+      : functionName_(std::move(functionName)), prefixMatch_(prefixMatch), results_(results) {}
 
   std::unique_ptr<clang::ASTConsumer>
   CreateASTConsumer(clang::CompilerInstance &, llvm::StringRef) override {
-    return std::make_unique<FunctionConsumer>(functionName_, results_);
+    return std::make_unique<FunctionConsumer>(functionName_, prefixMatch_, results_);
   }
 
 private:
   std::string functionName_;
+  bool prefixMatch_;
   std::vector<FunctionInfo> &results_;
 };
 
 // Factory that produces a FunctionAction for each source file in the tool run.
 class FunctionActionFactory : public clang::tooling::FrontendActionFactory {
 public:
-  FunctionActionFactory(std::string functionName, std::vector<FunctionInfo> &results)
-      : functionName_(std::move(functionName)), results_(results) {}
+  FunctionActionFactory(std::string functionName, bool prefixMatch, std::vector<FunctionInfo> &results)
+      : functionName_(std::move(functionName)), prefixMatch_(prefixMatch), results_(results) {}
 
   std::unique_ptr<clang::FrontendAction> create() override {
-    return std::make_unique<FunctionAction>(functionName_, results_);
+    return std::make_unique<FunctionAction>(functionName_, prefixMatch_, results_);
   }
 
 private:
   std::string functionName_;
+  bool prefixMatch_;
   std::vector<FunctionInfo> &results_;
 };
 
